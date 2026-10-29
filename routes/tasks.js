@@ -21,7 +21,7 @@ module.exports = function (router) {
             await task.save();
             res.status(201).json({message:"ok", data:task});
         } catch (err) {
-            res.status(500).json({message:err.message, data: err });
+            res.status(400).json({message:err.message, data: err });
         }
     });
 
@@ -62,7 +62,7 @@ module.exports = function (router) {
             if (!result) {
                 res.status(404).json({ message: "Task not found" });
             } else {
-                res.status(200).json({ message: "Success",data:result });
+                res.status(204).json({ message: "Success",data:result });
             }
         } catch (err) {
             res.status(404).json({message:err.message, data: err });
