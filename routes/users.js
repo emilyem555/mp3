@@ -6,7 +6,34 @@ module.exports = function (router) {
 
     // for userid, its req.params.id
     userRoute.get(async function (req, res) {
-        const query = User.find();
+        /*Add query handling:
+            - where: filter results based on JSON query
+            - sort: specify the order in which to sort each specified field (1- ascending; -1 - descending) 
+            - select: specify the set of fields to include or exclude in each document (1 - include; 0 - exclude)
+            - skip: specify the number of results to skip in the result set; useful for pagination
+            - limit: specify the number of results to return (default should be 100 for tasks and unlimited for users)
+            - count:if set to true, return the count of documents that match the query (instead of the documents themselves)
+        */
+        const filter = req.query.where
+            ? JSON.parse(req.query.where)
+            : {};
+        let query = User.find(filter); 
+        if(req.query.sort) {
+            query = query.sort(JSON.parse(req.query.sort));
+        } 
+        if(req.query.select) {
+            query = query.select(JSON.parse(req.query.select));
+        }
+        if(req.query.skip) {
+            query = query.skip(Number(req.query.skip));
+        }
+        if(req.query.limit) {
+            query = query.limit(Number(req.query.limit));
+        } 
+        if (req.query.count && req.query.count === "true") {
+            query = User.countDocuments(filter);
+        } 
+
         try {
             const result = await query.exec();
             res.status(200).json({ message:"Ok", data: result});
@@ -57,8 +84,6 @@ module.exports = function (router) {
         }
     });
 
-    // no error for tasks equivilent
-    // Deleting a user: request failed, no response from server (ECONNABORTED)
      userIdRoute.delete(async function (req, res) {
         const userId = req.params.id;
         const query = User.findByIdAndDelete(userId);
