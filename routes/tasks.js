@@ -10,6 +10,9 @@ module.exports = function (router) {
                     ? JSON.parse(req.query.where)
                     : {};
         let query = Task.find(filter); 
+        if (req.query.count && req.query.count === "true") {
+            query = Task.countDocuments(filter);
+        } 
         if(req.query.sort) {
             query = query.sort(JSON.parse(req.query.sort));
         } 
@@ -22,9 +25,7 @@ module.exports = function (router) {
         if(req.query.limit) {
             query = query.limit(Number(req.query.limit));
         } 
-        if (req.query.count && req.query.count === "true") {
-            query = User.countDocuments(filter);
-        } 
+        
         try {
             const result = await query.exec();
             res.status(200).json({ message:"Ok", data: result});
@@ -50,7 +51,7 @@ module.exports = function (router) {
         const filter = req.query.where
             ? JSON.parse(req.query.where)
             : {};
-        const query = Task.findById(taskId);
+        let query = Task.findById(taskId);
         if(req.query.sort) {
             query = query.sort(JSON.parse(req.query.sort));
         } 
