@@ -14,6 +14,8 @@ module.exports = function (router) {
             res.status(500).json({message:err.message, data: err });
         }
     });
+
+    // Invalid task: request succeeded (status 201) but should have been rejected
     taskRoute.post(async function (req, res) {
         const {name,description, deadline, completed, assignedUser, assignedUserName, dateCreated} = req.body;
         const task = new Task({name,description, deadline, completed, assignedUser, assignedUserName, dateCreated});
@@ -40,6 +42,9 @@ module.exports = function (router) {
             res.status(500).json({message:err.message, data: err });
         }
     });
+
+    // Two-way reference broken: assigning a task to a user (Task -> User.pendingTasks) did not add it to the user's pendingTasks
+    //assignedUser/assignedUserName that do not belong to the same user: request succeeded (status 200) but should have been rejected
     taskIdRoute.put(async function (req, res) {
         const taskId = req.params.id;
         const query = Task.findByIdAndUpdate(taskId, req.body, { new: true, runValidators: true });

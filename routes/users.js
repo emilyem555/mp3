@@ -40,6 +40,8 @@ module.exports = function (router) {
             res.status(500).json({message:err.message, data: err });
         }
     });
+
+    // Two-way reference broken: a task added to a user's pendingTasks (User.pendingTasks -> Task) was not assigned to that user (found assignedUser: "", assignedUserName: "unassigned"
     userIdRoute.put(async function (req, res) {
         const userId = req.params.id;
         const query = User.findByIdAndUpdate(userId, req.body, { new: true, runValidators: true });
@@ -54,6 +56,9 @@ module.exports = function (router) {
             res.status(500).json({message:err.message, data: err });
         }
     });
+
+    // no error for tasks equivilent
+    // Deleting a user: request failed, no response from server (ECONNABORTED)
      userIdRoute.delete(async function (req, res) {
         const userId = req.params.id;
         const query = User.findByIdAndDelete(userId);
@@ -62,7 +67,7 @@ module.exports = function (router) {
             if (!result) {
                 res.status(404).json({ message: "User not found" });
             } else {
-                res.status(204);
+                res.status(204).json({ message: "Success",data:result });
             }
         } catch (err) {
             res.status(404).json({message:err.message, data: err });
