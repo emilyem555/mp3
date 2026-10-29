@@ -6,7 +6,25 @@ module.exports = function (router) {
 
     // for taskid, its req.params.id
     taskRoute.get(async function (req, res) {
-        const query = Task.find();
+        const filter = req.query.where
+                    ? JSON.parse(req.query.where)
+                    : {};
+        let query = Task.find(filter); 
+        if(req.query.sort) {
+            query = query.sort(JSON.parse(req.query.sort));
+        } 
+        if(req.query.select) {
+            query = query.select(JSON.parse(req.query.select));
+        }
+        if(req.query.skip) {
+            query = query.skip(Number(req.query.skip));
+        }
+        if(req.query.limit) {
+            query = query.limit(Number(req.query.limit));
+        } 
+        if (req.query.count && req.query.count === "true") {
+            query = User.countDocuments(filter);
+        } 
         try {
             const result = await query.exec();
             res.status(200).json({ message:"Ok", data: result});
@@ -29,7 +47,25 @@ module.exports = function (router) {
 
     taskIdRoute.get(async function (req, res) {
         const taskId = req.params.id;
+        const filter = req.query.where
+            ? JSON.parse(req.query.where)
+            : {};
         const query = Task.findById(taskId);
+        if(req.query.sort) {
+            query = query.sort(JSON.parse(req.query.sort));
+        } 
+        if(req.query.select) {
+            query = query.select(JSON.parse(req.query.select));
+        }
+        if(req.query.skip) {
+            query = query.skip(Number(req.query.skip));
+        }
+        if(req.query.limit) {
+            query = query.limit(Number(req.query.limit));
+        } 
+        if (req.query.count && req.query.count === "true") {
+            query = query.countDocuments({_id:taskId});
+        } 
         try {
             const result = await query.exec();
             if (!result) {

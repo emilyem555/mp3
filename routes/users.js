@@ -54,7 +54,25 @@ module.exports = function (router) {
 
     userIdRoute.get(async function (req, res) {
         const userId = req.params.id;
-        const query = User.findById(userId);
+        const filter = req.query.where
+            ? JSON.parse(req.query.where)
+            : {};
+        let query = User.findById(userId); 
+        if(req.query.sort) {
+            query = query.sort(JSON.parse(req.query.sort));
+        } 
+        if(req.query.select) {
+            query = query.select(JSON.parse(req.query.select));
+        }
+        if(req.query.skip) {
+            query = query.skip(Number(req.query.skip));
+        }
+        if(req.query.limit) {
+            query = query.limit(Number(req.query.limit));
+        } 
+        if (req.query.count && req.query.count === "true") {
+            query = query.countDocuments({_id: userId});
+        } 
         try {
             const result = await query.exec();
             if (!result) {
