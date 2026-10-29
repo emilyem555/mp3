@@ -1,4 +1,4 @@
-const { Task } = require("../models/task");
+const { Task } = require("../models/user");
 
 module.exports = function (router) {
     var taskRoute = router.route('/tasks');
