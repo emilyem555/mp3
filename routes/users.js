@@ -1,7 +1,5 @@
-const { User } = require("../models/user");
-
 module.exports = function (router) {
-
+    const { User } = require("../models/user");
     var userRoute = router.route('/users');
 
     userRoute.get(async function (req, res) {
