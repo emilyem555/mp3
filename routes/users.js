@@ -47,17 +47,6 @@ module.exports = function (router) {
         if (!name || !email || typeof name != 'string' || typeof email != 'string') {
             return res.status(400).json({message:err.message, data:err});
         }
-        if (!pendingTasks) {
-            pendingTasks = [];
-        } else if (!Array.isArray(pendingTasks) || pendingTasks.every(item => typeof item !== 'string')) {
-            res.status(400).json({message:err.message, data:err});
-        }
-
-        if (!dateCreated) {
-            dateCreated = new Date();
-        } else if (!(dateCreated instanceof Date || (typeof dateCreated === 'string' && Date.parse(dateCreated) === NaN))) {
-            res.status(400).json({message:err.message, data:err});
-        }
 
         try{
             await user.save();

@@ -1,4 +1,4 @@
-const { Task } = require("../models/user");
+const { User, Task } = require("../models/user");
 
 module.exports = function (router) {
     var taskRoute = router.route('/tasks');
@@ -42,13 +42,6 @@ module.exports = function (router) {
         if (!name || !deadline  || typeof name !== 'string' || !(deadline instanceof Date)) {
             return res.status(400).json({message: "Name and deadline not set", data: err });
         }
-
-        if (!description) {
-            description = '';
-        }
-        if (!dateCreated) {
-            dateCreated = new Date();
-        } 
 
         try{
             await task.save();
@@ -98,6 +91,16 @@ module.exports = function (router) {
         const taskId = req.params.id;
         const query = Task.findByIdAndUpdate(taskId, req.body, { new: true, runValidators: true });
         try {
+            const taskVal = await Task.findById(taskId);
+            if (!(taskVal.assignedUser && taskVal.assignedUserName) && (taskVal.assignedUser || taskVal.assignedUserName)) {
+                return res.status(404).json({ message: "Task user data incorrect" });
+            }
+            if(taskVal.assignedUser) {
+                const taskUser = await User.findById(taskVal.assignedUser);
+                if(!taskUser || result.assignedUserName != taskUser.name) {
+                    return res.status(404).json({ message: "Task user data incorrect" });
+                }
+            }
             const result = await query.exec();
             if (!result) {
                 res.status(404).json({ message: "Task not found" });
