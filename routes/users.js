@@ -44,11 +44,26 @@ module.exports = function (router) {
     userRoute.post(async function (req, res) {
         const {name,email, pendingTasks, dateCreated} = req.body;
         const user = new User({name,email, pendingTasks, dateCreated});
+        if (!name || !email || typeof name != 'string' || typeof email != 'string') {
+            return res.status(400).json({message:err.message, data:err});
+        }
+        if (!pendingTasks) {
+            pendingTasks = [];
+        } else if (!Array.isArray(pendingTasks) || pendingTasks.every(item => typeof item !== 'string')) {
+            res.status(400).json({message:err.message, data:err});
+        }
+
+        if (!dateCreated) {
+            dateCreated = new Date();
+        } else if (!(dateCreated instanceof Date || (typeof dateCreated === 'string' && Date.parse(dateCreated) === NaN))) {
+            res.status(400).json({message:err.message, data:err});
+        }
+
         try{
             await user.save();
-            res.status(201).json({message:"ok", data:user});
+            return res.status(201).json({message:"ok", data:user});
         } catch (err) {
-            res.status(400).json({message:err.message, data: err });
+            return res.status(400).json({message:err.message, data: err });
         }
     });
 

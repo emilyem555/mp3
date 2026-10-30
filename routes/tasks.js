@@ -38,11 +38,23 @@ module.exports = function (router) {
     taskRoute.post(async function (req, res) {
         const {name,description, deadline, completed, assignedUser, assignedUserName, dateCreated} = req.body;
         const task = new Task({name,description, deadline, completed, assignedUser, assignedUserName, dateCreated});
+
+        if (!name || !deadline  || typeof name !== 'string' || !(deadline instanceof Date)) {
+            return res.status(400).json({message: "Name and deadline not set", data: err });
+        }
+
+        if (!description) {
+            description = '';
+        }
+        if (!dateCreated) {
+            dateCreated = new Date();
+        } 
+
         try{
             await task.save();
-            res.status(201).json({message:"ok", data:task});
+            return res.status(201).json({message:"ok", data:task});
         } catch (err) {
-            res.status(400).json({message:err.message, data: err });
+            return res.status(400).json({message:err.message, data: err });
         }
     });
 
