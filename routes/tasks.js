@@ -39,7 +39,9 @@ module.exports = function (router) {
         const {name,description, deadline, completed, assignedUser, assignedUserName, dateCreated} = req.body;
         const task = new Task({name,description, deadline, completed, assignedUser, assignedUserName, dateCreated});
 
-        if (!name || !deadline  || typeof name !== 'string' || !(deadline instanceof Date)) {
+        const deadlineDate = new Date(deadline);
+
+        if (!name || !deadline  || typeof name !== 'string' || isNaN(deadlineDate.getTime())) {
             return res.status(400).json({message: "Name and deadline not set", data: err });
         }
 
