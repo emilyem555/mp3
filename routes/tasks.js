@@ -37,13 +37,13 @@ module.exports = function (router) {
     // Invalid task: request succeeded (status 201) but should have been rejected
     taskRoute.post(async function (req, res) {
         const {name,description, deadline, completed, assignedUser, assignedUserName, dateCreated} = req.body;
-        const task = new Task({name,description, deadline, completed, assignedUser, assignedUserName, dateCreated});
 
         const deadlineDate = new Date(deadline);
 
         if (!name || !deadline  || typeof name !== 'string' || isNaN(deadlineDate.getTime())) {
-            return res.status(400).json({message: "Name and deadline not set", data: err });
+            return res.status(400).json({message: "Name and deadline not set"});
         }
+        const task = new Task({name,description, deadline, completed, assignedUser, assignedUserName, dateCreated});
 
         try{
             await task.save();
@@ -95,12 +95,12 @@ module.exports = function (router) {
         try {
             const taskVal = await Task.findById(taskId);
             if (!(taskVal.assignedUser && taskVal.assignedUserName) && (taskVal.assignedUser || taskVal.assignedUserName)) {
-                return res.status(404).json({ message: "Task user data incorrect" });
+                return res.status(400).json({ message: "Task user data incorrect" });
             }
             if(taskVal.assignedUser) {
                 const taskUser = await User.findById(taskVal.assignedUser);
                 if(!taskUser || result.assignedUserName != taskUser.name) {
-                    return res.status(404).json({ message: "Task user data incorrect" });
+                    return res.status(400).json({ message: "Task user data incorrect" });
                 }
             }
             const result = await query.exec();
