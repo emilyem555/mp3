@@ -100,7 +100,7 @@ module.exports = function (router) {
             // }
             if(taskVal.assignedUser) {
                 const taskUser = await User.findById(taskVal.assignedUser);
-                if(!taskUser || result.assignedUserName != taskUser.name) {
+                if(!taskUser || req.body.assignedUserName != taskUser.name) {
                     return res.status(400).json({ message: "Task user data incorrect" });
                 }
             }
