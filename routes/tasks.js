@@ -48,13 +48,18 @@ module.exports = function (router) {
 
         try{
             const result = await task.save();
-            const newUser = await User.findById(result.assignedUser);
-            if(newUser) {
-                let pendingTasks = newUser.pendingTasks;
-                pendingTasks.push(result._id);
-                const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
+            if (result) {
+                const newUser = await User.findById(result.assignedUser);
+                if(newUser) {
+                    let pendingTasks = newUser.pendingTasks;
+                    pendingTasks.push(result._id);
+                    const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
+                }
+                return res.status(201).json({message:"ok", data:task});
+            } else {
+                return res.status(400).json({ message: "task not created" });
             }
-            return res.status(201).json({message:"ok", data:task});
+            
         } catch (err) {
             return res.status(400).json({message:err.message, data: err });
         }
