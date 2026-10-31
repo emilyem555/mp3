@@ -114,7 +114,14 @@ module.exports = function (router) {
                             const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
                         }
                     }
-                    if(taskVal.assignedUser && taskVal.assignedUser !== '') {
+                    if(result.completed && taskVal.assignedUser && taskVal.assignedUser !== '') {
+                        const oldUser = await User.findById(taskVal.assignedUser);
+                        if(oldUser) {
+                            let oldPendingTasks = oldUser.pendingTasks;
+                            oldPendingTasks = oldPendingTasks.filter(v => v != result._id);
+                            const setOldUser = await User.findByIdAndUpdate(taskVal.assignedUser, {$set:{pendingTasks:oldPendingTasks}});
+                        }
+                    } else if(taskVal.assignedUser && taskVal.assignedUser !== '') {
                         const oldUser = await User.findById(taskVal.assignedUser);
                         if(oldUser) {
                             let oldPendingTasks = oldUser.pendingTasks;
