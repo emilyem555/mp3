@@ -1,4 +1,4 @@
-const { User } = require("../models/user");
+const { User, Task } = require("../models/user");
 
 module.exports = function (router) {
     var userRoute = router.route('/users');
@@ -45,11 +45,15 @@ module.exports = function (router) {
         const {name,email, pendingTasks, dateCreated} = req.body;
         const user = new User({name,email, pendingTasks, dateCreated});
         if (!name || !email || typeof name != 'string' || typeof email != 'string') {
-            return res.status(400).json({message:err.message, data:err});
+            return res.status(400).json({message:"missing required data"});
         }
-
         try{
-            await user.save();
+            const result = await user.save();
+            if(result.pendingTasks && result.pendingTasks.length !== 0) {
+                const taskResult = await Task.updateMany({ _id: { $in:result.pendingTasks } },
+                                                         { $set: { assignedUser: result._id, assignedUserName: result.name} });
+
+            }
             return res.status(201).json({message:"ok", data:user});
         } catch (err) {
             return res.status(400).json({message:err.message, data: err });
@@ -95,10 +99,19 @@ module.exports = function (router) {
         const userId = req.params.id;
         const query = User.findByIdAndUpdate(userId, req.body, { new: true, runValidators: true });
         try {
+            const old_user = await User.findById(userId);
             const result = await query.exec();
             if (!result) {
                 res.status(404).json({ message: "User not found" });
             } else {
+                if(result.pendingTasks && old_user.pendingTasks) {
+                    const taskResult = await Task.updateMany({ _id: { $in:result.pendingTasks.filter(newTask => !old_user.pendingTasks.some(oldTask => oldTask.toString() === newTask.toString())) } },
+                                                            { $set: { assignedUser: result._id, assignedUserName: result.name} });
+                }
+                if (old_user.pendingTasks && old_user.pendingTasks.length !== 0) {
+                    const oldTaskResult = await Task.updateMany({ _id: { $in:old_user.pendingTasks.filter(oldTask => !result.pendingTasks.some(newTask => oldTask.toString() === newTask.toString())) }, assignedUser:userId },
+                                                        { $set: { assignedUser: '', assignedUserName: ''} });
+                }
                 res.status(200).json({ message:"Ok", data: result});
             }
         } catch (err) {

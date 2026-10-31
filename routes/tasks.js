@@ -10,9 +10,7 @@ module.exports = function (router) {
                     ? JSON.parse(req.query.where)
                     : {};
         let query = Task.find(filter); 
-        if (req.query.count && req.query.count === "true") {
-            query = Task.countDocuments(filter);
-        } 
+        
         if(req.query.sort) {
             query = query.sort(JSON.parse(req.query.sort));
         } 
@@ -24,6 +22,9 @@ module.exports = function (router) {
         }
         if(req.query.limit) {
             query = query.limit(Number(req.query.limit));
+        } 
+        if (req.query.count && req.query.count === "true") {
+            query = Task.countDocuments(filter);
         } 
         
         try {
@@ -94,9 +95,9 @@ module.exports = function (router) {
         const query = Task.findByIdAndUpdate(taskId, req.body, { new: true, runValidators: true });
         try {
             const taskVal = await Task.findById(taskId);
-            if (!(taskVal.assignedUser && taskVal.assignedUserName) && (taskVal.assignedUser || taskVal.assignedUserName)) {
-                return res.status(400).json({ message: "Task user data incorrect" });
-            }
+            // if (!(taskVal.assignedUser && taskVal.assignedUserName) && (taskVal.assignedUser || taskVal.assignedUserName)) {
+            //     return res.status(400).json({ message: "Task user data incorrect" });
+            // }
             if(taskVal.assignedUser) {
                 const taskUser = await User.findById(taskVal.assignedUser);
                 if(!taskUser || result.assignedUserName != taskUser.name) {
