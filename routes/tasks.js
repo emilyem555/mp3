@@ -106,17 +106,21 @@ module.exports = function (router) {
                 res.status(404).json({ message: "Task not found" });
             } else {
                 if (taskVal.assignedUser != result.assignedUser) {
-                    const newUser = await User.findById(result.assignedUser);
-                    const oldUser = await User.findById(taskVal.assignedUser);
-                    if(newUser) {
-                        let pendingTasks = newUser.pendingTasks;
-                        pendingTasks.push(result._id);
-                        const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
+                    if(result.assignedUser && result.assignedUser !== '') {
+                        const newUser = await User.findById(result.assignedUser);
+                        if(newUser) {
+                            let pendingTasks = newUser.pendingTasks;
+                            pendingTasks.push(result._id);
+                            const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
+                        }
                     }
-                    if(oldUser) {
-                        let oldPendingTasks = oldUser.pendingTasks;
-                        oldPendingTasks = oldPendingTasks.filter(v => v != result._id);
-                        const setOldUser = await User.findByIdAndUpdate(taskVal.assignedUser, {$set:{pendingTasks:oldPendingTasks}});
+                    if(taskVal.assignedUser && taskVal.assignedUser !== '') {
+                        const oldUser = await User.findById(taskVal.assignedUser);
+                        if(oldUser) {
+                            let oldPendingTasks = oldUser.pendingTasks;
+                            oldPendingTasks = oldPendingTasks.filter(v => v != result._id);
+                            const setOldUser = await User.findByIdAndUpdate(taskVal.assignedUser, {$set:{pendingTasks:oldPendingTasks}});
+                        }
                     }
                 }
                 res.status(200).json({ message:"Ok", data: result});
