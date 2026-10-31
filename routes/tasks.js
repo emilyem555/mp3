@@ -47,7 +47,13 @@ module.exports = function (router) {
         const task = new Task({name,description, deadline, completed, assignedUser, assignedUserName, dateCreated});
 
         try{
-            await task.save();
+            const result = await task.save();
+            const newUser = await User.findById(result.assignedUser);
+            if(newUser) {
+                let pendingTasks = newUser.pendingTasks;
+                pendingTasks.push(result._id);
+                const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
+            }
             return res.status(201).json({message:"ok", data:task});
         } catch (err) {
             return res.status(400).json({message:err.message, data: err });
@@ -95,10 +101,7 @@ module.exports = function (router) {
         const query = Task.findByIdAndUpdate(taskId, req.body, { new: true, runValidators: true });
         try {
             const taskVal = await Task.findById(taskId);
-            // if (!(taskVal.assignedUser && taskVal.assignedUserName) && (taskVal.assignedUser || taskVal.assignedUserName)) {
-            //     return res.status(400).json({ message: "Task user data incorrect" });
-            // }
-            if(taskVal.assignedUser) {
+            if(taskVal && taskVal.assignedUser) {
                 const taskUser = await User.findById(taskVal.assignedUser);
                 if(!taskUser || req.body.assignedUserName != taskUser.name) {
                     return res.status(400).json({ message: "Task user data incorrect" });
@@ -108,6 +111,20 @@ module.exports = function (router) {
             if (!result) {
                 res.status(404).json({ message: "Task not found" });
             } else {
+                if (taskVal.assignedUser != result.assignedUser) {
+                    const newUser = await User.findById(result.assignedUser);
+                    const oldUser = await User.findById(taskVal.assignedUser);
+                    if(newUser) {
+                        let pendingTasks = newUser.pendingTasks;
+                        pendingTasks.push(result._id);
+                        const setNewUser = await User.findByIdAndUpdate(result.assignedUser, {$set:{pendingTasks:pendingTasks}});
+                    }
+                    if(oldUser) {
+                        let oldPendingTasks = oldUser.pendingTasks;
+                        oldPendingTasks = oldPendingTasks.filter(v => v != result._id);
+                        const setOldUser = await User.findByIdAndUpdate(taskVal.assignedUser, {$set:{pendingTasks:oldPendingTasks}});
+                    }
+                }
                 res.status(200).json({ message:"Ok", data: result});
             }
         } catch (err) {
